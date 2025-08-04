@@ -75,9 +75,11 @@ export default function Login({ onSubmit }: LoginProps) {
 
   const handleGoogleSignIn = async () => {
     try {
-      // Open Google OAuth in a popup window or redirect
-      // Since your backend handles the full OAuth flow, we need to redirect
-      window.location.href = `${config.api_url}/auth/google/login`;
+      // Check if window is defined (client-side only)
+      if (typeof window !== 'undefined') {
+        // Redirect to Google OAuth endpoint
+        window.location.href = `${config.api_url}/auth/google/login`;
+      }
     } catch (error: any) {
       setError('Google sign in failed: ' + error.message);
     }

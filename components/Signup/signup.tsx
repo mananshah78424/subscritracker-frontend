@@ -80,8 +80,11 @@ export default function Signup({ onSubmit }: SignupProps) {
 
   const handleGoogleSignUp = async () => {
     try {
-      // Redirect to Google OAuth endpoint
-      window.location.href = `${config.api_url}/auth/google/login`;
+      // Check if window is defined (client-side only)
+      if (typeof window !== 'undefined') {
+        // Redirect to Google OAuth endpoint
+        window.location.href = `${config.api_url}/auth/google/login`;
+      }
     } catch (error: any) {
       setError('Google sign up failed: ' + error.message);
     }
