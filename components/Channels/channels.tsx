@@ -19,12 +19,23 @@ export default function Channels(){
     const [channels, setChannels] = useState<Channel[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [token, setToken] = useState<string | null>(null);
     const router = useRouter();
-    const token = localStorage.getItem('auth_token');
-    if(!token){
-        router.push('/login');
-    }
-    useEffect(() => {   
+
+    // Handle token retrieval on client side only
+    useEffect(() => {
+        const storedToken = localStorage.getItem('auth_token');
+        if (!storedToken) {
+            router.push('/login');
+        } else {
+            setToken(storedToken);
+        }
+    }, [router]);
+
+    // Fetch channels when token is available
+    useEffect(() => {
+        if (!token) return;
+        
         const fetchChannels = async () => {
             try {
                 const response = await fetch(`${config.api_url}/v1/subscription-channels`, {
@@ -34,6 +45,11 @@ export default function Channels(){
                         'Authorization': `Bearer ${token}`
                     }
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json() as Channel[];
                 setChannels(data);
             } catch (error: any) {
@@ -42,8 +58,9 @@ export default function Channels(){
                 setLoading(false);
             }
         };
+        
         fetchChannels();
-    }, []); 
+    }, [token]); 
     
     if (loading) {
         return (
