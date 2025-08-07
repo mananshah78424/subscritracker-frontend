@@ -44,5 +44,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return null; // Will redirect to login
   }
 
-  return <>{children}</>;
+  return <div className='min-h-screen mx-auto'>
+  {children}
+  </div>;
 } 
