@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/router';
+import Navbar from '../components/Navbar/navbar';
+import Footer from '../components/Footer/footer';
 
 interface User {
   id: string;
@@ -128,7 +130,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
+      <Navbar></Navbar>
       {children}
+      <Footer></Footer>
+
     </AuthContext.Provider>
   );
 }; 
