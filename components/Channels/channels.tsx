@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import { config } from '../../utils/config';
 import { useRouter } from 'next/router';
+import { useAuth } from '../../contexts/AuthContext';
+import ChannelModal from '../Modal/channelModal';
 
 type Channel = {
     id: string;
@@ -16,10 +18,13 @@ type Channel = {
 }
 
 export default function Channels(){
+    const { user } = useAuth();
     const [channels, setChannels] = useState<Channel[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
     const router = useRouter();
 
     // Handle token retrieval on client side only
@@ -85,11 +90,26 @@ export default function Channels(){
         );
     }
 
+    const openModal = (channel: Channel) => {
+        setSelectedChannel(channel);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedChannel(null);
+    };
+
+    const handleSubscriptionSubmit = (subscriptionData: any) => {
+        console.log('Subscription submitted:', { channel: selectedChannel, ...subscriptionData });
+        // Here you would typically make an API call to save the subscription
+        // For now, we'll just log it and close the modal
+        closeModal();
+    };
+
     return (
         <div className="min-h-screen py-8">
             <div className="mx-auto px-4">
-            
-
                 {channels.length === 0 ? (
                     <div className="text-center py-12">
                         <div className="text-gray-400 text-6xl mb-4">📺</div>
@@ -139,21 +159,21 @@ export default function Channels(){
                                             {channel.channel_name}
                                         </p>
                                         {/* Channel URL */}
-                                    {channel.channel_url && (
-                                        <div className="mb-4">
-                                            <a 
-                                                href={channel.channel_url} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 group/link"
-                                            >
-                                                <span>Visit Channel</span>
-                                                <svg className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                </svg>
-                                            </a>
-                                        </div>
-                                    )}
+                                        {channel.channel_url && (
+                                            <div className="mb-4">
+                                                <a 
+                                                    href={channel.channel_url} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 group/link"
+                                                >
+                                                    <span>Visit Channel</span>
+                                                    <svg className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {channel.channel_description && (
@@ -166,13 +186,26 @@ export default function Channels(){
                                         </p>
                                     )}
 
-                                    
+                                    <button 
+                                        onClick={() => openModal(channel)}
+                                        className="w-full text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center justify-center gap-1 group/link py-2 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                                    >
+                                        <span>Subscribe</span>
+                                    </button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* Modal */}
+            <ChannelModal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                channel={selectedChannel}
+                submitHandlerFromParent={handleSubscriptionSubmit}
+            />
         </div>
     );
 }
