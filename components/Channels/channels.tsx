@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { config } from '../../utils/config';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
-import ChannelModal from '../Modal/channelModal';
+import ChannelModal, { SubscriptionFormData } from '../Modal/channelModal';
 
 type Channel = {
     id: string;
@@ -100,7 +100,7 @@ export default function Channels(){
         setSelectedChannel(null);
     };
 
-    const handleSubscriptionSubmit = (subscriptionData: any) => {
+    const handleSubscriptionSubmit = (subscriptionData: SubscriptionFormData) => {
         console.log('Subscription submitted:', { channel: selectedChannel, ...subscriptionData });
         // Here you would typically make an API call to save the subscription
         // For now, we'll just log it and close the modal
