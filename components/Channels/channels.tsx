@@ -103,6 +103,28 @@ export default function Channels(){
         setSelectedChannel(null);
     };
 
+    // Helper function to handle rollback of subscription detail
+    const rollbackSubscriptionDetail = async (subscriptionDetailId: string): Promise<boolean> => {
+        try {
+            console.log('Rolling back: Deleting subscription detail...');
+            const rollbackResponse = await fetch(`${config.api_url}/v1/subscription-details/${subscriptionDetailId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (rollbackResponse.ok) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (rollbackError) {
+            console.error('Error during rollback:', rollbackError);
+            return false;
+        }
+    };
+
     const handleSubscriptionSubmit = async (subscriptionData: SubscriptionFormData) => {        
         // Clear any previous errors and set loading state
         setSubscriptionError(null);
@@ -152,24 +174,14 @@ export default function Channels(){
                 
                 // Rollback: Delete the subscription detail since event failed
                 if (subscriptionDetailId) {
-                    try {
-                        const rollbackResponse = await fetch(`${config.api_url}/v1/subscription-details/${subscriptionDetailId}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-                        
-                        if (rollbackResponse.ok) {
-                            return;
-                        } else {
-                            return;
-                        }
-                    } catch (rollbackError) {
-                        return;
+                    const rollbackSuccess = await rollbackSubscriptionDetail(subscriptionDetailId);
+                    if (rollbackSuccess) {
+                        setSubscriptionError(prev => prev + " Rollback succeeded: subscription detail deleted.");
+                    } else {
+                        setSubscriptionError(prev => prev + " Rollback failed: could not delete subscription detail.");
                     }
                 }
-                return; // Exit early instead of throwing
+                return; // Exit early after setting error message
             }
             
             const eventData = await eventResponse.json();
@@ -180,21 +192,11 @@ export default function Channels(){
         } catch (error: any) {            
             // Rollback: If subscription detail was created but event failed, delete the detail
             if (subscriptionDetailId) {
-                try {
-                    const rollbackResponse = await fetch(`${config.api_url}/v1/subscription-details/${subscriptionDetailId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    
-                    if (rollbackResponse.ok) {
-                        return;
-                    } else {
-                        return;
-                    }
-                } catch (rollbackError) {
-                    return;
+                const rollbackSuccess = await rollbackSubscriptionDetail(subscriptionDetailId);
+                if (rollbackSuccess) {
+                    setSubscriptionError(prev => prev + " Rollback succeeded: subscription detail deleted.");
+                } else {
+                    setSubscriptionError(prev => prev + " Rollback failed: exception occurred during deletion.");
                 }
             }
             
@@ -307,7 +309,7 @@ export default function Channels(){
 
             {/* Subscription Error Display */}
             {subscriptionError && (
-                <div className="fixed bottom-6 right-6 max-w-md bg-red-50 border border-red-200 rounded-lg shadow-lg p-4 animate-slide-up">
+                <div className="fixed bottom-6 right-6 max-w-md bg-red-50 border border-red-200 rounded-lg shadow-lg p-4 transform transition-all duration-300 ease-out animate-in slide-in-from-bottom-2">
                     <div className="flex items-start gap-3">
                         <div className="flex-shrink-0">
                             <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
@@ -332,20 +334,3 @@ export default function Channels(){
         </div>
     );
 }
-
-/* Tailwind animation for error notification */
-<style jsx global>{`
-@keyframes slide-up {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
-`}</style>
