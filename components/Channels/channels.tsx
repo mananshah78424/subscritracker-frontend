@@ -25,6 +25,8 @@ export default function Channels(){
     const [token, setToken] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
+    const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+    const [isSubscribing, setIsSubscribing] = useState(false);
     const router = useRouter();
 
     // Handle token retrieval on client side only
@@ -52,7 +54,8 @@ export default function Channels(){
                 });
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    setError(response.statusText);
+                    return;
                 }
                 
                 const data = await response.json() as Channel[];
@@ -100,11 +103,106 @@ export default function Channels(){
         setSelectedChannel(null);
     };
 
-    const handleSubscriptionSubmit = (subscriptionData: SubscriptionFormData) => {
-        console.log('Subscription submitted:', { channel: selectedChannel, ...subscriptionData });
-        // Here you would typically make an API call to save the subscription
-        // For now, we'll just log it and close the modal
-        closeModal();
+    const handleSubscriptionSubmit = async (subscriptionData: SubscriptionFormData) => {        
+        // Clear any previous errors and set loading state
+        setSubscriptionError(null);
+        setIsSubscribing(true);
+        
+        let subscriptionDetailId: string | null = null;
+        
+        try {
+            // Step 1: Create subscription detail
+            const detailResponse = await fetch(`${config.api_url}/v1/subscription-details`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    subscription_channel_id: selectedChannel?.id,
+                    ...subscriptionData
+                })
+            });
+            
+            if (!detailResponse.ok) {
+                const errorText = await detailResponse.text();
+                setSubscriptionError(`Failed to create subscription: ${detailResponse.status === 409 ? 'You already have a subscription to this channel' : `Error creating subscription: ${errorText}`}`);
+                return; 
+            }
+            
+            const detailData = await detailResponse.json();
+            subscriptionDetailId = detailData.id;
+            
+            // Step 2: Create subscription event
+            const eventResponse = await fetch(`${config.api_url}/v1/subscription-events`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    subscription_details_id: subscriptionDetailId,
+                    account_id: user?.id,
+                })
+            });
+            
+            if (!eventResponse.ok) {
+                const errorText = await eventResponse.text();
+                setSubscriptionError(`Failed to create subscription event: ${eventResponse.status === 409 ? 'Event creation failed' : `Error creating subscription event: ${errorText}`}`);
+                
+                // Rollback: Delete the subscription detail since event failed
+                if (subscriptionDetailId) {
+                    try {
+                        const rollbackResponse = await fetch(`${config.api_url}/v1/subscription-details/${subscriptionDetailId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (rollbackResponse.ok) {
+                            return;
+                        } else {
+                            return;
+                        }
+                    } catch (rollbackError) {
+                        return;
+                    }
+                }
+                return; // Exit early instead of throwing
+            }
+            
+            const eventData = await eventResponse.json();
+            
+            // Both operations succeeded
+            closeModal();
+            
+        } catch (error: any) {            
+            // Rollback: If subscription detail was created but event failed, delete the detail
+            if (subscriptionDetailId) {
+                try {
+                    const rollbackResponse = await fetch(`${config.api_url}/v1/subscription-details/${subscriptionDetailId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (rollbackResponse.ok) {
+                        return;
+                    } else {
+                        return;
+                    }
+                } catch (rollbackError) {
+                    return;
+                }
+            }
+            
+            // Set error state for frontend display
+            setSubscriptionError('An unexpected error occurred. Please try again.');
+        } finally {
+            setIsSubscribing(false);
+        }
     };
 
     return (
@@ -206,6 +304,48 @@ export default function Channels(){
                 channel={selectedChannel}
                 submitHandlerFromParent={handleSubscriptionSubmit}
             />
+
+            {/* Subscription Error Display */}
+            {subscriptionError && (
+                <div className="fixed bottom-6 right-6 max-w-md bg-red-50 border border-red-200 rounded-lg shadow-lg p-4 animate-slide-up">
+                    <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                            <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-medium text-red-800">Subscription Failed</h3>
+                            <p className="text-sm text-red-700 mt-1">{subscriptionError}</p>
+                        </div>
+                        <button
+                            onClick={() => setSubscriptionError(null)}
+                            className="flex-shrink-0 text-red-400 hover:text-red-600 transition-colors"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
+
+/* Tailwind animation for error notification */
+<style jsx global>{`
+@keyframes slide-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+`}</style>
