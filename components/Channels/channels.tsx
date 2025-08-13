@@ -26,6 +26,7 @@ export default function Channels(){
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
     const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+    const [subscriptionSuccess, setSubscriptionSuccess] = useState<string | null>(null);
     const [isSubscribing, setIsSubscribing] = useState(false);
     const router = useRouter();
 
@@ -68,7 +69,18 @@ export default function Channels(){
         };
         
         fetchChannels();
-    }, [token]); 
+    }, [token]);
+
+    // Auto-hide success message after 5 seconds
+    useEffect(() => {
+        if (subscriptionSuccess) {
+            const timer = setTimeout(() => {
+                setSubscriptionSuccess(null);
+            }, 5000);
+            
+            return () => clearTimeout(timer);
+        }
+    }, [subscriptionSuccess]);
     
     if (loading) {
         return (
@@ -128,6 +140,7 @@ export default function Channels(){
     const handleSubscriptionSubmit = async (subscriptionData: SubscriptionFormData) => {        
         // Clear any previous errors and set loading state
         setSubscriptionError(null);
+        setSubscriptionSuccess(null); // Clear success message
         setIsSubscribing(true);
         
         let subscriptionDetailId: string | null = null;
@@ -187,6 +200,7 @@ export default function Channels(){
             const eventData = await eventResponse.json();
             
             // Both operations succeeded
+            setSubscriptionSuccess(`Successfully subscribed to ${selectedChannel?.channel_name}!`);
             closeModal();
             
         } catch (error: any) {            
@@ -305,6 +319,7 @@ export default function Channels(){
                 onClose={closeModal}
                 channel={selectedChannel}
                 submitHandlerFromParent={handleSubscriptionSubmit}
+                isLoading={isSubscribing}
             />
 
             {/* Subscription Error Display */}
@@ -323,6 +338,31 @@ export default function Channels(){
                         <button
                             onClick={() => setSubscriptionError(null)}
                             className="flex-shrink-0 text-red-400 hover:text-red-600 transition-colors"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Subscription Success Display */}
+            {subscriptionSuccess && (
+                <div className="fixed bottom-6 right-6 max-w-md bg-green-50 border border-green-200 rounded-lg shadow-lg p-4 transform transition-all duration-300 ease-out animate-in slide-in-from-bottom-2">
+                    <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                            <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L13 8.586l-1.293 1.293z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-sm font-medium text-green-800">Subscription Successful!</h3>
+                            <p className="text-sm text-green-700 mt-1">{subscriptionSuccess}</p>
+                        </div>
+                        <button
+                            onClick={() => setSubscriptionSuccess(null)}
+                            className="flex-shrink-0 text-green-400 hover:text-green-600 transition-colors"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

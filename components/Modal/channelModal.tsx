@@ -17,6 +17,7 @@ interface ChannelModalProps {
   onClose: () => void;
   channel: Channel | null;
   submitHandlerFromParent?: (data: SubscriptionFormData) => void;
+  isLoading?: boolean;
 }
 
 export interface SubscriptionFormData {
@@ -29,7 +30,7 @@ export interface SubscriptionFormData {
   reminder_time: string;
 }
 
-export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFromParent }: ChannelModalProps) {
+export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFromParent, isLoading = false }: ChannelModalProps) {
   const [formData, setFormData] = useState<SubscriptionFormData>({
     start_date: '',
     start_time: '',
@@ -41,7 +42,6 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
   });
 
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -53,7 +53,6 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
     
     try {
@@ -68,8 +67,6 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
       onClose();
     } catch (error: any) {
       setError(error.message || 'Failed to save subscription');
-    } finally {
-      setIsLoading(false);
     }
   };
 
