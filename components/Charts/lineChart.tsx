@@ -167,7 +167,7 @@ export default function SubscriptionChart({
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => `${yAxisPrefix}${value}${yAxisSuffix}`}
-              domain={[0, 'dataMax + 10']} // Auto-scale with some padding
+              domain={[0, (dataMax: number) => dataMax + 10]} // Auto-scale with some padding
             />
             {showTooltip && (
               <Tooltip 

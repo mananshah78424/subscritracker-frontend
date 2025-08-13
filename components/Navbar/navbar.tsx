@@ -17,7 +17,6 @@ export default function Navbar() {
     }
     setParsedUserName(parseUserName(user));
   },[user])
-  console.log(user);
   return (
     <div className="flex flex-col w-full">
 
@@ -63,12 +62,12 @@ export default function Navbar() {
         }
 
         {user && user.name ?
-          <a
+          <button
             onClick={logout}
             className="text-[#020202] px-4 py-2 text-sm font-normal leading-5 opacity-70 hover:opacity-100 transition-all duration-200 ease-in-out"
           >
             Logout
-          </a>
+          </button>
  : 
           <a
             href="/account"
