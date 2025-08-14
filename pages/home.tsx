@@ -4,8 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
-import SubscriptionChart from '../components/Charts/lineChart';
-import { chartConfigs } from '../components/Charts/dummyDataLineChart';
+import MonthlyReportChart from '../components/Analysis/MonthlyReportChart';
 
 export default function HomePage() {
   const { user, logout } = useAuth();
@@ -51,7 +50,7 @@ export default function HomePage() {
           </div>
 
         <div className='my-[100px]'>
-          <SubscriptionChart {...chartConfigs.subscription} />
+          <MonthlyReportChart />
         </div>
     </ProtectedRoute>
   );
