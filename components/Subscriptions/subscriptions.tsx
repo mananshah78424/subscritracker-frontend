@@ -3,6 +3,11 @@ import ProtectedRoute from "../ProtectedRoute";
 import { config } from "../../utils/config";
 import { useAuth } from "../../contexts/AuthContext";
 
+enum SortOption {
+  PriceHighLow = "price-high-low",
+  PriceLowHigh = "price-low-high"
+}
+
 interface Subscription {
   id: number;
   account_id: number;
@@ -22,7 +27,7 @@ export default function Subscriptions() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<string>("");
+  const [sortBy, setSortBy] = useState<SortOption | "">("");
 
   useEffect(() => {
     const fetchSubscriptions = async () => {
@@ -85,10 +90,10 @@ export default function Subscriptions() {
     }
   };
 
-  const sortSubscriptions = (subscriptions: Subscription[], sortOption: string) => {
-    if (sortOption === "price-high-low") {
+  const sortSubscriptions = (subscriptions: Subscription[], sortOption: SortOption | "") => {
+    if (sortOption === SortOption.PriceHighLow) {
         return [...subscriptions].sort((a,b)=>b.monthly_bill - a.monthly_bill)
-    } else if (sortOption === "price-low-high") {
+    } else if (sortOption === SortOption.PriceLowHigh) {
         return [...subscriptions].sort((a,b)=>a.monthly_bill - b.monthly_bill)
     }
     return subscriptions;
@@ -172,12 +177,12 @@ export default function Subscriptions() {
                 <select 
                     id='sort-select'
                     value={sortBy}
-                    onChange={(e)=>setSortBy(e.target.value)}
+                    onChange={(e)=>setSortBy(e.target.value as SortOption | "")}
                     className="ml-2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
                 <option value="">Default</option>
-                  <option value="price-high-low">Price: High to Low</option>
-                  <option value="price-low-high">Price: Low to High</option>
+                  <option value={SortOption.PriceHighLow}>Price: High to Low</option>
+                  <option value={SortOption.PriceLowHigh}>Price: Low to High</option>
                 </select>
                 
               </div>
@@ -221,7 +226,7 @@ export default function Subscriptions() {
                             }}
                           />
                         ) : null}
-                        <div className={`w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ${subscription.channel_image_url ? 'hidden' : ''}`}>
+                        <div className={`w-24 h-24 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ${subscription.channel_image_url ? 'hidden' : ''}`}>
                           <span className="text-white font-bold text-lg">
                             {subscription.subscription_channel_name.charAt(0).toUpperCase()}
                           </span>
