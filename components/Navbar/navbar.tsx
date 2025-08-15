@@ -33,7 +33,12 @@ export default function Navbar() {
               className="h-12 w-auto"
             />
           </Link>
-         
+          <a
+            href="/home"
+            className="text-[#020202] px-4 py-2 text-sm font-normal leading-5 opacity-70 hover:opacity-100 transition-all duration-200 ease-in-out"
+          >
+            Home
+          </a>
           <a
             href="/channels"
             className="text-[#020202] px-4 py-2 text-sm font-normal leading-5 opacity-70 hover:opacity-100 transition-all duration-200 ease-in-out"
@@ -41,10 +46,10 @@ export default function Navbar() {
             Channels
           </a>
           <a
-            href="/about"
+            href="/subscriptions"
             className="text-[#020202] px-4 py-2 text-sm font-normal leading-5 opacity-70 hover:opacity-100 transition-all duration-200 ease-in-out"
           >
-            About
+            Subscriptions
           </a>
          
         </div>
@@ -52,7 +57,7 @@ export default function Navbar() {
         <div className="flex flex-row gap-4 items-center">
           {user && user.name ?
           <a
-            href="/docs"
+            href="#"
             className="text-[#020202] px-4 py-2 text-sm font-normal leading-5 opacity-70 hover:opacity-100 transition-all duration-200 ease-in-out"
           >
             Welcome, {parsedUserName}
