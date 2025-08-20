@@ -15,11 +15,12 @@ interface Subscription {
   subscription_channel_name: string;
   channel_image_url: string;
   start_date: Date;
-  due_date: Date;
+  next_due_date: Date;
+  due_type: 'monthly' | 'weekly' | 'daily' | 'yearly';
   status: string;
   monthly_bill: number;
-  reminder_date: Date;
-  reminder_time: Date;
+  reminder_date: Date | null;
+  reminder_time: Date | null;
 }
 
 export default function Subscriptions() {
@@ -69,10 +70,12 @@ export default function Subscriptions() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+    // If the amount is a whole number, don't show decimals
+    if (Number.isInteger(amount)) {
+      return `$${amount.toLocaleString()}`;
+    }
+    // For decimal amounts, show up to 2 decimal places
+    return `$${amount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -208,7 +211,7 @@ export default function Subscriptions() {
               {subscriptions && sortedSubscriptions.map((subscription) => (
                 <div
                   key={subscription.id}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
+                  className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 hover:scale-[1.02]"
                 >
                   {/* Card Header with Image and Status */}
                   <div className="relative p-6 pb-4">
@@ -258,18 +261,18 @@ export default function Subscriptions() {
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">Next Payment</span>
                         <span className="font-medium text-gray-900">
-                          {formatDate(subscription.due_date)}
+                          {formatDate(subscription.next_due_date)}
                         </span>
                       </div>
                       <div className="mt-1">
                         <span className={`text-xs font-medium ${
-                          getDaysUntilDue(subscription.due_date).includes('overdue') 
+                          getDaysUntilDue(subscription.next_due_date).includes('overdue') 
                             ? 'text-red-600' 
-                            : getDaysUntilDue(subscription.due_date).includes('today') || getDaysUntilDue(subscription.due_date).includes('tomorrow')
+                            : getDaysUntilDue(subscription.next_due_date).includes('today') || getDaysUntilDue(subscription.next_due_date).includes('tomorrow')
                             ? 'text-orange-600'
                             : 'text-green-600'
                         }`}>
-                          {getDaysUntilDue(subscription.due_date)}
+                          {getDaysUntilDue(subscription.next_due_date)}
                         </span>
                       </div>
                     </div>
@@ -282,7 +285,7 @@ export default function Subscriptions() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Reminder</span>
-                        <span className="text-gray-900">{formatDate(subscription.reminder_date)}</span>
+                        <span className="text-gray-900">{subscription.reminder_date ? formatDate(subscription.reminder_date) : 'None'}</span>
                       </div>
                     </div>
 
