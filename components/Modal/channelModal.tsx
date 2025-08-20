@@ -23,32 +23,64 @@ interface ChannelModalProps {
 export interface SubscriptionFormData {
   start_date: string;
   start_time: string;
-  due_date: string;
+  due_day_of_month: number;
   due_time: string;
-  monthly_bill: number;
+  monthly_bill: number | string;
   reminder_date: string;
   reminder_time: string;
+  due_type: 'monthly' | 'weekly' | 'daily' | 'yearly';
 }
 
 export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFromParent, isLoading = false }: ChannelModalProps) {
   const [formData, setFormData] = useState<SubscriptionFormData>({
     start_date: '',
     start_time: '',
-    due_date: '',
+    due_day_of_month: 1,
     due_time: '',
     monthly_bill: 0,
     reminder_date: '',
     reminder_time: '',
+    due_type: 'monthly',
   });
 
   const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
-    }));
+    
+    if (name === 'monthly_bill') {
+      // For monthly bill, allow any valid numeric input including decimals
+      // Only update if it's a valid number format or empty
+      if (value === '' || /^\d*\.?\d*$/.test(value)) {
+        // If it's empty, set to 0
+        if (value === '') {
+          setFormData(prev => ({
+            ...prev,
+            [name]: 0,
+          }));
+        } else {
+          // If it ends with a dot, allow it (user might be typing a decimal)
+          if (value.endsWith('.')) {
+            setFormData(prev => ({
+              ...prev,
+              [name]: value,
+            }));
+          } else {
+            // Parse the numeric value
+            const parsedValue = parseFloat(value);
+            setFormData(prev => ({
+              ...prev,
+              [name]: isNaN(parsedValue) ? 0 : parsedValue,
+            }));
+          }
+        }
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -142,19 +174,19 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
             </div>
 
             <div className="flex flex-row gap-4">
-            {/* Due Date */}
+            {/* Due Day */}
             <div className="w-1/2">
-              <label className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="due_date">
+              <label className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="due_day_of_month">
                 <Calendar className="w-4 h-4 text-gray-500" />
-                Due Date
+                Due Day
               </label>
               <input
-                type="date"
-                name="due_date"
-                value={formData.due_date}
+                type="number"
+                name="due_day_of_month"
+                value={formData.due_day_of_month}
                 onChange={handleInputChange}
                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-[10px]"
-                  id="due_date"
+                id="due_day_of_month"
                 required
               />
             </div>
@@ -173,6 +205,24 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-[10px]"
               />
             </div>
+
+            {/* Due Type */}
+            <div className="w-1/2">
+              <label className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" htmlFor="due_type">
+                Due Type
+              </label>
+              <select
+                name="due_type"
+                value={formData.due_type}
+                onChange={(e) => setFormData(prev => ({ ...prev, due_type: e.target.value as 'monthly' | 'weekly' | 'daily' | 'yearly' }))}
+                className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-[10px]"
+              >
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="daily">Daily</option>
+                <option value="yearly">Yearly</option>
+              </select> 
+            </div>
             </div>
             {/* Monthly Bill */}
             <div className="grid gap-2">
@@ -181,14 +231,13 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
                 Monthly Bill ($)
               </label>
               <input
-                type="number"
+                type="text"
                 name="monthly_bill"
-                value={formData.monthly_bill}
+                value={typeof formData.monthly_bill === 'string' ? formData.monthly_bill : (formData.monthly_bill === 0 ? '' : formData.monthly_bill.toString())}
                 onChange={handleInputChange}
                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-[10px]"
                 id="monthly_bill"
-                placeholder="0.00"
-                step="0.01"
+                placeholder="100.00"
                 min="0"
                 required
               />
