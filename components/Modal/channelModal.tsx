@@ -45,6 +45,13 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
 
   const [error, setError] = useState<string | null>(null);
 
+  const getMonthlyBillValue = (monthlyBill: number | string): string => {
+    if (typeof monthlyBill === 'string') {
+      return monthlyBill;
+    }
+    return monthlyBill === 0 ? '' : monthlyBill.toString();
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     
@@ -187,6 +194,8 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
                 onChange={handleInputChange}
                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-[10px]"
                 id="due_day_of_month"
+                min="1"
+                max="31"
                 required
               />
             </div>
@@ -233,7 +242,7 @@ export default function ChannelModal({ isOpen, onClose, channel, submitHandlerFr
               <input
                 type="text"
                 name="monthly_bill"
-                value={typeof formData.monthly_bill === 'string' ? formData.monthly_bill : (formData.monthly_bill === 0 ? '' : formData.monthly_bill.toString())}
+                value={getMonthlyBillValue(formData.monthly_bill)}
                 onChange={handleInputChange}
                 className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-[10px]"
                 id="monthly_bill"
