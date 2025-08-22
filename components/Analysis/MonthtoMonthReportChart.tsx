@@ -16,13 +16,13 @@ export default function MonthtoMonthReportChart() {
         const result = await fetchMonthtoMonthReport();
         
         if (result.data) {
-          console.log("Got the month to-month report as", result.data);
+          console.log("Got the month-to-month report as", result.data);
           setMonthToMonthReport(result.data);
         } else if (result.error) {
           setError(result.error);
         }
       } catch (err) {
-        setError('Failed to fetch month to-month report');
+        setError('Failed to fetch month-to-month report');
       } finally {
         setLoading(false);
       }
@@ -42,7 +42,8 @@ export default function MonthtoMonthReportChart() {
   // Create chart configuration for the monthly report
   const monthlyChartConfig = {
     data: monthToMonthReport ? transformMonthlyData(monthToMonthReport) : [],
-    title: `Monthly Subscription Costs Breakdown for ${monthToMonthReport?.subscriptions[0]?.month || 'Current Month'}`,
+      title: `Monthly Subscription Costs Breakdown for ${monthToMonthReport?.subscriptions[0]?.
+        month || 'Current Month'}`,
     description: "",
     xAxisKey: "subscription",
     lineKeys: ['cost'],
@@ -132,7 +133,7 @@ export default function MonthtoMonthReportChart() {
       </div>
       <div className='w-2/3'>
       <div className='flex flex-col'>
-        <p className='text-[40px] pl-6'>Monthly Analysis for {monthToMonthReport.subscriptions[0].month}</p>
+        <p className='text-[40px] pl-6'>Monthly Analysis for {monthToMonthReport.subscriptions?.[0]?.month}</p>
       <div className="p-6">
         <SubscriptionChart {...monthlyChartConfig} />
       </div>

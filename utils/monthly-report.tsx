@@ -145,9 +145,9 @@ export const fetchMonthtoMonthReport = async (): Promise<MonthtoMonthReportResul
     });
 
     if (!response.ok) {
-      console.log("Failed to fetch monthto-month report", response);
+      console.log("Failed to fetch month-to-month report", response);
       return {
-        error: 'Failed to fetch monthto-month report'
+        error: 'Failed to fetch month-to-month report'
       }
     }
 
