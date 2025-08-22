@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
 import MonthlyReportChart from '../components/Analysis/MonthlyReportChart';
+import MonthtoMonthReportChart from '../components/Analysis/MonthtoMonthReportChart';
 
 export default function HomePage() {
   const { user, logout } = useAuth();
@@ -49,6 +50,9 @@ export default function HomePage() {
             </div>
           </div>
 
+        <div className='my-[100px]'>
+          <MonthtoMonthReportChart />
+        </div>
         <div className='my-[100px]'>
           <MonthlyReportChart />
         </div>

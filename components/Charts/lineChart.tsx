@@ -121,22 +121,7 @@ export default function SubscriptionChart({
   const formatTooltip = tooltipFormatter || 
     ((value: number) => [defaultTooltipFormatter(value, yAxisPrefix, yAxisSuffix), '']);
 
-  // Calculate summary stats if not provided
-  const calculatedStats = summaryStats || [
-    {
-      label: 'Total Items',
-      value: data.length,
-    },
-    {
-      label: 'Data Range',
-      value: `${data[0]?.[xAxisKey]} - ${data[data.length - 1]?.[xAxisKey]}`,
-    },
-    {
-      label: 'Lines Displayed',
-      value: lineKeys.length,
-    },
-  ];
-
+  
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="mb-6">
@@ -209,9 +194,9 @@ export default function SubscriptionChart({
       </div>
       
       {/* Summary stats */}
-      {calculatedStats.length > 0 && (
+      {summaryStats && summaryStats.length > 0 && (
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {calculatedStats.map((stat, index) => (
+          {summaryStats.map((stat, index) => (
             <div key={index} className="text-center">
               <p className="text-sm text-gray-600">{stat.label}</p>
               <p className="text-lg font-semibold text-gray-900">
