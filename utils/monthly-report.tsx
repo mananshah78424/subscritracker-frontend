@@ -69,8 +69,27 @@ export type MonthlyReportResponse = {
   cost: number;
 }
 
+export type MonthlySubscriptions = {
+  month: string;
+  year: string;
+  subscription_channel_id: string;
+  cost: number;
+  status: string;
+  next_due_date: string;
+}
+
+export type MonthtoMonthReportResponse = {
+  subscriptions: MonthlySubscriptions[];
+  total_cost: number;
+}
+
 export type MonthlyReportResult = {
   data?: MonthlyReportResponse[];
+  error?: string;
+}
+
+export type MonthtoMonthReportResult = {
+  data?: MonthtoMonthReportResponse;
   error?: string;
 }
 
@@ -99,6 +118,40 @@ export const fetchMonthlyReport = async (): Promise<MonthlyReportResult> => {
     }
 
     const data: MonthlyReportResponse[] = await response.json();
+    return { data };
+    
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : 'An unexpected error occurred'
+    }
+  }
+}
+
+export const fetchMonthtoMonthReport = async (): Promise<MonthtoMonthReportResult> => {
+  try {
+    // Get token based on local storage or use the user object
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      return {
+        error: 'No token found'
+      }
+    }
+
+    const response = await fetch(`${config.api_url}/v1/analysis/month-by-month-report`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      console.log("Failed to fetch monthto-month report", response);
+      return {
+        error: 'Failed to fetch monthto-month report'
+      }
+    }
+
+    const data: MonthtoMonthReportResponse = await response.json();
     return { data };
     
   } catch (error) {
